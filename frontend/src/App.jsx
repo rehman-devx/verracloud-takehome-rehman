@@ -13,12 +13,6 @@ export default function App() {
     dispatch(fetchHoldings());
     dispatch(fetchPrices());
     startSignalRConnection();
-
-    const interval = setInterval(() => {
-      dispatch(fetchHoldings());
-    }, 5000);
-
-    return () => clearInterval(interval);
   }, [dispatch]);
 
   return (

@@ -13,7 +13,6 @@ export function startSignalRConnection() {
 
   // when server broadcasts price update
   connection.on("PricesUpdated", (prices) => {
-    console.log("SignalR prices received:", prices);
     store.dispatch(pricesUpdated(prices));
   });
 
@@ -22,7 +21,8 @@ export function startSignalRConnection() {
   });
 
   connection.onreconnected(() => {
-    console.log("SignalR reconnected");
+    console.log("SignalR reconnected — refreshing data");
+    store.dispatch(fetchHoldings());
   });
 
   connection.onclose(() => {

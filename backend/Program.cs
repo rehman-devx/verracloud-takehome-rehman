@@ -55,6 +55,6 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowFrontend");
 app.UseAuthorization();
 app.MapControllers();
-app.MapHub<PriceHub>("/hubs/prices");  // ← this was missing
+app.MapHub<PriceHub>("/hubs/prices");
 
 app.Run();
