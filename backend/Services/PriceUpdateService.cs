@@ -1,4 +1,6 @@
+using Backend.Hubs;
 using Backend.Repositories;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Backend.Services;
 
@@ -6,11 +8,16 @@ public class PriceUpdateService : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<PriceUpdateService> _logger;
+    private readonly IHubContext<PriceHub> _hubContext;
 
-    public PriceUpdateService(IServiceScopeFactory scopeFactory, ILogger<PriceUpdateService> logger)
+    public PriceUpdateService(
+        IServiceScopeFactory scopeFactory,
+        ILogger<PriceUpdateService> logger,
+        IHubContext<PriceHub> hubContext)
     {
         _scopeFactory = scopeFactory;
         _logger = logger;
+        _hubContext = hubContext;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -23,7 +30,12 @@ public class PriceUpdateService : BackgroundService
 
             try
             {
-                await RefreshPricesAsync();
+                var prices = await RefreshPricesAsync();
+
+                // broadcast to ALL connected frontend clients
+                await _hubContext.Clients.All.SendAsync("PricesUpdated", prices, stoppingToken);
+
+                _logger.LogInformation("Prices refreshed and broadcast at {time}", DateTime.UtcNow);
             }
             catch (Exception ex)
             {
@@ -32,11 +44,8 @@ public class PriceUpdateService : BackgroundService
         }
     }
 
-    private async Task RefreshPricesAsync()
+    private async Task<List<object>> RefreshPricesAsync()
     {
-        // background services are singletons
-        // DbContext is scoped
-        // must create a scope to resolve scoped services
         using var scope = _scopeFactory.CreateScope();
         var priceRepo = scope.ServiceProvider.GetRequiredService<IPriceRepository>();
 
@@ -51,6 +60,11 @@ public class PriceUpdateService : BackgroundService
             await priceRepo.UpdatePriceAsync(price);
         }
 
-        _logger.LogInformation("Prices refreshed at {time}", DateTime.UtcNow);
+        // return lowercase for JavaScript
+        return prices.Select(p => (object)new {
+            ticker = p.Ticker.ToUpper(),
+            currentPrice = p.CurrentPrice,
+            lastUpdatedAt = p.LastUpdatedAt
+        }).ToList();
     }
 }

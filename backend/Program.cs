@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Backend.Data;
 using Backend.Repositories;
 using Backend.Services;
+using Backend.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,5 +55,6 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowFrontend");
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<PriceHub>("/hubs/prices");  // ← this was missing
 
 app.Run();
