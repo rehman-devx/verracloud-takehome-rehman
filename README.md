@@ -31,6 +31,18 @@ npm run dev
 
 App runs at `http://localhost:5173`
 
+### Run with Docker (alternative)
+
+**Requirements:** Docker Desktop
+
+```bash
+docker compose up --build
+```
+
+Backend at `http://localhost:5283`  
+Frontend at `http://localhost:5173`  
+Swagger at `http://localhost:5283/swagger`
+
 **Total setup time: under 5 minutes.**
 
 ### Tests
@@ -136,6 +148,7 @@ We use AI tools as force multipliers. Here is an honest account of how AI was us
 ### Tools Used
 
 - **Claude (claude.ai)** — primary tool throughout the project
+- **Cursor** — AI-assisted code editing throughout the project
 
 ### Where AI Helped
 
@@ -169,3 +182,4 @@ I caught this from the error message on first run, understood why it was happeni
 | Delete confirmation modal               | No destructive action without confirmation |
 | Ticker with no price handled gracefully | Edge case awareness                        |
 | Swagger UI                              | API documentation at `/swagger`            |
+| Docker + docker-compose                 | DevOps maturity                            |

@@ -60,7 +60,6 @@ public class PriceUpdateService : BackgroundService
             await priceRepo.UpdatePriceAsync(price);
         }
 
-        // return lowercase for JavaScript
         return prices.Select(p => (object)new {
             ticker = p.Ticker.ToUpper(),
             currentPrice = p.CurrentPrice,
