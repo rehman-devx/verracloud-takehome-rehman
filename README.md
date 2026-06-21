@@ -103,6 +103,9 @@ PriceUpdateService (every 10 seconds)
   → components re-render with new values
 ```
 
+> Note: price updates are pushed in real-time via SignalR — no polling required.
+> Holdings state is managed client-side and synced instantly on add/delete operations.
+
 ---
 
 ## Design Decisions
