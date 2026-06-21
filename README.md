@@ -33,6 +33,15 @@ App runs at `http://localhost:5173`
 
 **Total setup time: under 5 minutes.**
 
+### Tests
+
+```bash
+cd Backend.Tests
+dotnet test
+```
+
+13 tests, all passing.
+
 ---
 
 ## Architecture Overview
@@ -110,13 +119,13 @@ The background price service uses `IHostedService` because it needs to run indep
 - Cache prices in Redis — they change every 10 seconds, no need to hit the database on every holdings request
 - Read replicas for GET /api/holdings — separate read and write databases (CQRS pattern)
 - Rate limit POST /api/holdings per user to prevent abuse
-- Pagination on holdings for users with large portfolios
+- Server-side pagination on GET /api/holdings for users with very large portfolios
 
 ### What's the one thing you'd improve with another 2 hours?
 
-Unit tests on the P&L calculation in `HoldingService`. The formula itself is simple but financial calculations are exactly where silent bugs cause the most damage — a rounding error or an off-by-one in quantity calculation directly affects what traders see as their profit or loss.
+Authentication. Right now any user can add or delete any holding — there's no concept of ownership. I'd add JWT authentication so each user has their own portfolio, holdings are scoped per user, and the API rejects unauthenticated requests. The layered architecture makes this straightforward to add — an `[Authorize]` attribute on controllers, a `UserId` column on the Holdings table, and a filter in the repository layer so users only see their own data.
 
-The layered architecture makes this straightforward to add — `HoldingService` takes `IHoldingRepository` and `IPriceRepository` interfaces, both of which can be mocked in tests with no database required. I'd cover: normal profit scenario, normal loss scenario, zero P&L when purchase price equals current price, missing price fallback behaviour, and large quantity precision.
+A close second would be moving from SQLite to PostgreSQL. SQLite is fine for a take-home but doesn't support concurrent writes — the first production bottleneck would be the write path under real load.
 
 ---
 
@@ -150,9 +159,13 @@ I caught this from the error message on first run, understood why it was happeni
 
 ## Bonus Features Implemented
 
-| Feature                       | Signal                                                           |
-| ----------------------------- | ---------------------------------------------------------------- |
-| SignalR instead of polling    | Real-time systems awareness                                      |
-| Ticker dropdown from live API | Prevents invalid input at the UX layer                           |
-| Delete confirmation modal     | Production thinking — no destructive action without confirmation |
-| Swagger UI                    | API documentation at `/swagger`                                  |
+| Feature                                 | Signal                                     |
+| --------------------------------------- | ------------------------------------------ |
+| SignalR instead of polling              | Real-time systems awareness                |
+| Unit tests — 13 passing                 | Quality instinct                           |
+| Pagination on holdings table            | Production thinking                        |
+| Column sorting + P&L filtering          | UX depth                                   |
+| Ticker dropdown from live API           | Prevents invalid input at the UX layer     |
+| Delete confirmation modal               | No destructive action without confirmation |
+| Ticker with no price handled gracefully | Edge case awareness                        |
+| Swagger UI                              | API documentation at `/swagger`            |
